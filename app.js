@@ -1,108 +1,87 @@
-// Array para almacenar los amigos
+// Array para almacenar los nombres de los amigos
 let amigos = [];
 
+// Función para agregar un amigo a la lista
 function agregarAmigo() {
     const inputAmigo = document.getElementById('amigo');
     const nombre = inputAmigo.value.trim();
 
-    // Validaciones
-    if (nombre === '') {
-        alert('Por favor, ingrese un nombre');
-        return;
+    if (nombre !== '') {
+        amigos.push(nombre);
+        actualizarListaAmigos();
+        inputAmigo.value = ''; // Limpiar el input
     }
-
-    if (amigos.includes(nombre)) {
-        alert('Este nombre ya está en la lista');
-        return;
-    }
-
-    // Agregar el nuevo amigo
-    amigos.push(nombre);
-
-    // Limpiar el input
-    inputAmigo.value = '';
-
-    // Actualizar la lista
-    mostrarAmigos();
 }
 
-function mostrarAmigos() {
+// Función para actualizar la lista visual de amigos
+function actualizarListaAmigos() {
     const lista = document.getElementById('listaAmigos');
-    lista.innerHTML = '';
+    lista.innerHTML = ''; // Limpiar la lista existente
 
     for (let i = 0; i < amigos.length; i++) {
         const li = document.createElement('li');
-        li.className = 'name-item';
+        li.textContent = amigos[i];
 
-        const itemContainer = document.createElement('div');
-        itemContainer.className = 'item-container';
+        // Agregar botón para eliminar amigo
+        const botonEliminar = document.createElement('button');
+        botonEliminar.textContent = '×';
+        botonEliminar.className = 'button-delete';
+        botonEliminar.onclick = () => eliminarAmigo(i);
 
-        const nombreSpan = document.createElement('span');
-        nombreSpan.textContent = amigos[i];
-        itemContainer.appendChild(nombreSpan);
-
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'button-delete';
-        deleteButton.innerHTML = '✕';
-        deleteButton.onclick = () => eliminarAmigo(i);
-        itemContainer.appendChild(deleteButton);
-
-        li.appendChild(itemContainer);
+        li.appendChild(botonEliminar);
         lista.appendChild(li);
     }
 }
 
-function eliminarAmigo(indice) {
-    amigos.splice(indice, 1);
-    mostrarAmigos();
+// Función para eliminar un amigo de la lista
+function eliminarAmigo(index) {
+    amigos.splice(index, 1);
+    actualizarListaAmigos();
 }
 
+// Función para sortear amigos secretos
 function sortearAmigo() {
-    // Validar que haya suficientes participantes
     if (amigos.length < 2) {
-        alert('Se necesitan al menos 2 participantes para realizar el sorteo');
+        alert('Se necesitan al menos 2 amigos para realizar el sorteo');
         return;
     }
 
-    // Limpiar resultados anteriores
-    const resultadoLista = document.getElementById('resultado');
-    resultadoLista.innerHTML = '';
+    const resultado = document.getElementById('resultado');
+    resultado.innerHTML = ''; // Limpiar resultados anteriores
 
-    // Hacer una copia del array de amigos para el sorteo
-    let amigosDisponibles = [...amigos];
-    let asignaciones = [];
+    // Crear una copia del array para hacer el sorteo
+    let amigosPorAsignar = [...amigos];
+    let amigosAsignados = [];
 
-    // Realizar el sorteo
+    // Asignar amigos secretos
     for (let i = 0; i < amigos.length; i++) {
         let amigoActual = amigos[i];
-        let amigoSecreto;
+        let indiceAleatorio;
 
-        // Si es el último participante y le tocó él mismo, rehacer el sorteo
-        if (amigosDisponibles.length === 1 && amigosDisponibles[0] === amigoActual) {
-            return sortearAmigo(); // Volver a intentar
-        }
-
-        // Encontrar un amigo secreto válido
         do {
-            const indiceAleatorio = Math.floor(Math.random() * amigosDisponibles.length);
-            amigoSecreto = amigosDisponibles[indiceAleatorio];
-        } while (amigoSecreto === amigoActual && amigosDisponibles.length > 1);
+            indiceAleatorio = Math.floor(Math.random() * amigosPorAsignar.length);
+        } while (amigosPorAsignar[indiceAleatorio] === amigoActual && amigosPorAsignar.length > 1);
 
-        // Eliminar el amigo secreto de los disponibles
-        amigosDisponibles = amigosDisponibles.filter(amigo => amigo !== amigoSecreto);
-
-        // Guardar la asignación
-        asignaciones.push({
-            persona: amigoActual,
+        const amigoSecreto = amigosPorAsignar[indiceAleatorio];
+        amigosAsignados.push({
+            amigo: amigoActual,
             amigoSecreto: amigoSecreto
         });
+
+        amigosPorAsignar.splice(indiceAleatorio, 1);
     }
 
-    // Mostrar los resultados
-    asignaciones.forEach(asignacion => {
+    // Mostrar resultados
+    amigosAsignados.forEach(asignacion => {
         const li = document.createElement('li');
-        li.className = 'result-item';
-        li.textContent = `${asignacion.persona} → ${asignacion.amigoSecreto}`;
-        resultadoLista.appendChild(li);
+        li.textContent = `${asignacion.amigo} → ${asignacion.amigoSecreto}`;
+        resultado.appendChild(li);
     });
-}}
+}
+
+// Agregar evento para permitir agregar amigos con la tecla Enter
+document.getElementById('amigo').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+        agregarAmigo();
+    }
+});
